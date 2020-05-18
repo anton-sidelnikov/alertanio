@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "alertanio"
+version = "0.0.1"
+description = "alerta templating"
+authors = ["OTC customer service monitoring team"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/opentelekomcloud-infra/delatore"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+psycopg2 = "^2.8.5"
+alerta = "^7.4.4"
+pyyaml = "^5.3.1"
+ocomone = "^0.4.3"
+pyyaml-typed = "^0.1.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.3"
+pylint = "^2.4"
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
