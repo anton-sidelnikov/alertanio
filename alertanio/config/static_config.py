@@ -13,6 +13,16 @@ class BaseConfiguration:
     params: dict
 
 
+@dataclass(frozen=True)
+class AlertaConfiguration:
+    """Base configuration class"""
+    config_id: int
+    config_name: str
+    alerta_endpoint: str
+    alerta_timeout: int
+    alerta_debug: bool
+
+
 _CONFIGS = Resources(__file__)
 
 
@@ -23,4 +33,4 @@ def _cfg_load(cfg_file: str, cfg_class):
     return result
 
 
-TABLES: Dict[str, BaseConfiguration] = _cfg_load(_CONFIGS['db_init.yaml'], List[BaseConfiguration])
+DATABASE: Dict[str, BaseConfiguration] = _cfg_load(_CONFIGS['db_init.yaml'], List[BaseConfiguration])

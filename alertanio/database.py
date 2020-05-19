@@ -1,6 +1,7 @@
 import logging
 
 import psycopg2
+from psycopg2.extras import DictCursor
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -42,6 +43,12 @@ class DBHelper:
 
     def get(self, table, columns, limit=None):
         query = f'SELECT {columns} FROM {table};'
+        self.cur.execute(query)
+        rows = self.cur.fetchall()
+        return rows[len(rows) - limit if limit else 0:]
+
+    def get_with_condition(self, table, columns, condition, limit=None):
+        query = f'SELECT {columns} FROM {table} WHERE {condition};'
         self.cur.execute(query)
         rows = self.cur.fetchall()
         return rows[len(rows) - limit if limit else 0:]

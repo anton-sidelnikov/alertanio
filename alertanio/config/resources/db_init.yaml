@@ -1,3 +1,8 @@
+- name: db_config
+  params:
+    host: '80.158.41.159'
+    port: 5432
+    user: 'postgres'
 - name: templates
   params: 'CREATE TABLE templates
          (
@@ -8,11 +13,11 @@
 - name: config
   params: 'CREATE TABLE configuration
          (
-            config_id INT PRIMARY KEY,
+            config_id SERIAL PRIMARY KEY,
             config_name VARCHAR(40) NOT NULL,
-            environments_skip TEXT,
-            services_skip TEXT,
-            sending_timeout INT NOT NULL
+            alerta_endpoint VARCHAR(255),
+            alerta_timeout INT NOT NULL,
+            alerta_debug BOOLEAN NOT NULL
          )'
 - name: topics
   params: 'CREATE TABLE topics
