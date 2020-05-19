@@ -6,8 +6,7 @@ LOG = logging.getLogger('alertanio')
 
 
 def _main():
-    client = AlertaClient()
-    client.start()
+    client = AlertaClient().start()
     # db = DBHelper(host="80.158.41.159", port="5432", user="postgres", password="qwerty12345!")
     # db.__connect__()
     # if not db.check_database_exist():

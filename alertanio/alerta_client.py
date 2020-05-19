@@ -13,6 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 ALERTA_API_KEY = os.environ.get('ALERTA_API_KEY')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 
+
 class AlertaClient:
     """Alerta client wrapper"""
     _alerta: Client = None
@@ -40,6 +41,7 @@ class AlertaClient:
         return self._alerta
 
     def load_configuration(self):
+        """Load/Re-Load Alerta configuration and Topics templates"""
         self.db = DBHelper(
             host=self.config['host'],
             port=self.config['port'],
@@ -59,6 +61,7 @@ class AlertaClient:
         self.db.__disconnect__()
 
     def start_fetching(self):
+        """Start fetching updates from Alerta"""
         return
 
     def start(self):

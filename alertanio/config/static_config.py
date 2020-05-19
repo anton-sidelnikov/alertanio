@@ -15,7 +15,7 @@ class BaseConfiguration:
 
 @dataclass(frozen=True)
 class AlertaConfiguration:
-    """Base configuration class"""
+    """Alerta configuration class"""
     config_id: int
     config_name: str
     alerta_endpoint: str
