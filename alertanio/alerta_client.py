@@ -13,16 +13,6 @@ LOGGER.setLevel(logging.DEBUG)
 ALERTA_API_KEY = os.environ.get('ALERTA_API_KEY')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 
-DEFAULT_TMPL = """
-{% if customer %}Customer: `{{customer}}` {% endif %}
-*[{{ status.capitalize() }}] {{ environment }} {{ severity.capitalize() }}*
-{{ event }} {{ resource.capitalize() }}
-```
-{{ text }}
-```
-"""
-
-
 class AlertaClient:
     """Alerta client wrapper"""
     _alerta: Client = None
@@ -50,10 +40,6 @@ class AlertaClient:
         return self._alerta
 
     def load_configuration(self):
-        all = '*'
-        table = 'configuration'
-        condition = f"config_name='{self.environment}'"
-
         self.db = DBHelper(
             host=self.config['host'],
             port=self.config['port'],
@@ -62,7 +48,14 @@ class AlertaClient:
         )
         self.db.__connect__()
         self.alerta_config = AlertaConfiguration(
-            *(self.db.get_with_condition(table=table, columns=all, condition=condition)[0]))
+            *(self.db.get(
+                columns='*',
+                table='configuration',
+                condition=f"config_name='{self.environment}'")[0]))
+        self.TEMPLATES = dict(self.db.get(
+            columns='topic_name, template_data',
+            table='templates',
+            custom_clause='INNER JOIN topics ON templates.template_id=topics.templ_id'))
         self.db.__disconnect__()
 
     def start_fetching(self):

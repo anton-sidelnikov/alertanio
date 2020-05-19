@@ -41,14 +41,13 @@ class DBHelper:
                 LOGGER.error('Error while processing SQL request')
         return True
 
-    def get(self, table, columns, limit=None):
-        query = f'SELECT {columns} FROM {table};'
-        self.cur.execute(query)
-        rows = self.cur.fetchall()
-        return rows[len(rows) - limit if limit else 0:]
-
-    def get_with_condition(self, table, columns, condition, limit=None):
-        query = f'SELECT {columns} FROM {table} WHERE {condition};'
+    def get(self, table, columns, condition=None, custom_clause=None, limit=None):
+        if condition:
+            query = f'SELECT {columns} FROM {table} WHERE {condition};'
+        elif custom_clause:
+            query = f'SELECT {columns} FROM {table} {custom_clause};'
+        else:
+            query = f'SELECT {columns} FROM {table};'
         self.cur.execute(query)
         rows = self.cur.fetchall()
         return rows[len(rows) - limit if limit else 0:]
