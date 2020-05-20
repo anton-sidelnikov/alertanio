@@ -15,6 +15,8 @@ alerta = "^7.4.4"
 pyyaml = "^5.3.1"
 ocomone = "^0.4.3"
 pyyaml-typed = "^0.1.0"
+zulip = "^0.7.0"
+jinja2 = "^2.11.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3"

@@ -1,6 +1,8 @@
 import logging
 import os
 import threading
+import time
+from datetime import datetime
 
 from alertaclient.api import Client
 
@@ -60,9 +62,20 @@ class AlertaClient:
             custom_clause='INNER JOIN topics ON templates.template_id=topics.templ_id'))
         self.db.__disconnect__()
 
-    def start_fetching(self):
-        """Start fetching updates from Alerta"""
-        return
+    def start_fetching(self, auto_refresh=True, interval=5):
+        """Start fetching updates from Alerta
+
+            Date format for query: 2020-05-20T11:00:00.000Z
+        """
+
+        while auto_refresh:
+            alerts = self.alerta.get_alerts(
+                query=[('from-date', datetime.utcnow().isoformat().split('.')[0] + '.000Z')])
+            for alert in alerts:
+                if not alert.repeat and alert.status not in ['ack', 'blackout', 'closed']:
+                    print("1")
+            time.sleep(interval)
+        time.sleep(5)
 
     def start(self):
         """Start alerta"""
