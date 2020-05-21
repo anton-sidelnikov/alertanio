@@ -23,7 +23,23 @@ class AlertaConfiguration:
     alerta_debug: bool
 
 
+@dataclass(frozen=True)
+class TopicMap:
+    """Topic map class"""
+    to: str
+    subject: str
+
+
 _CONFIGS = Resources(__file__)
+
+
+def topic_map(topics: list):
+    """Topic map"""
+    map = {}
+    topics = {item[0]: item[1:] for item in topics}
+    for key, value in topics.items():
+        map.update({key: TopicMap(*value)})
+    return map
 
 
 def _cfg_load(cfg_file: str, cfg_class):

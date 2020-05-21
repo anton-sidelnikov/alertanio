@@ -17,7 +17,7 @@ ZULIP_ALLOW_UNSECURE = os.environ.get('ZULIP_ALLOW_UNSECURE')
 
 class ZulipClient():
 
-    def __init__(self, templates):
+    def __init__(self, template_map, topic_map):
         zulip_args = {
             'site': ZULIP_SITE,
             'email': ZULIP_EMAIL,
@@ -27,19 +27,22 @@ class ZulipClient():
             zulip_args['insecure'] = ZULIP_ALLOW_UNSECURE
         self.bot = zulip.Client(**zulip_args)
 
-        self.ZULIP_TEMPLATES = templates
-        self.ZULIP_SERVICE_TOPIC_MAP = {
-            'service1': {
-                'to': 'stream_name',
-                'subject': 'topic_name'
+        self.ZULIP_TEMPLATES = template_map
+        self.ZULIP_SERVICE_TOPIC_MAP = topic_map
+        """
+            {
+                'service1': {
+                    'to': 'stream_name',
+                    'subject': 'topic_name'
+                }
             }
-        }
+        """
 
-
-        self.template = Template(self.ZULIP_TEMPLATES)
         # self.template = Template(DEFAULT_TMPL)
 
     def post_receive(self, alert):
+        self.template = Template(self.ZULIP_TEMPLATES['DEFAULT_TMPL'])
+
         try:
             text = self.template.render(alert.__dict__)
         except UndefinedError:
@@ -76,15 +79,15 @@ class ZulipClient():
             }
             LOGGER.debug('Zulip: message=%s', text)
 
-            response = self.bot.send_message(request)
+            # response = self.bot.send_message(request)
 
-            if response['result'] != 'success':
-                LOGGER.warn('Error sending alert message to Zulip %s' %
-                         response['msg'])
+        #     if response['result'] != 'success':
+        #         LOGGER.warn('Error sending alert message to Zulip %s' %
+        #                  response['msg'])
         except Exception as e:
             raise RuntimeError("Zulip: ERROR - %s", e)
 
-        LOGGER.debug('Zulip: %s', response)
+        # LOGGER.debug('Zulip: %s', response)
 
         return
 

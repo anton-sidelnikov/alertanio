@@ -6,8 +6,9 @@ from datetime import datetime
 
 from alertaclient.api import Client
 
-from alertanio.config.static_config import DATABASE, AlertaConfiguration
+from alertanio.config.static_config import DATABASE, AlertaConfiguration, topic_map
 from alertanio.database import DBHelper
+from alertanio.zulip_client import ZulipClient
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -26,7 +27,6 @@ class AlertaClient:
         self.alerta_api_key = ALERTA_API_KEY
         self.db_password = DB_PASSWORD
         self.environment = environment
-
         self.load_configuration()
 
     @property
@@ -52,15 +52,18 @@ class AlertaClient:
         )
         self.db.__connect__()
         self.alerta_config = AlertaConfiguration(
-            *(self.db.get(
+            *self.db.get(
                 columns='*',
                 table='configuration',
-                condition=f"config_name='{self.environment}'")[0]))
-        self.TEMPLATES = dict(self.db.get(
+                condition=f"config_name='{self.environment}'")[0])
+        self.templates = dict(self.db.get(
             columns='topic_name, template_data',
             table='templates',
             custom_clause='INNER JOIN topics ON templates.template_id=topics.templ_id'))
+        self.topics = topic_map(self.db.get(table='topics', columns='topic_name, zulip_to, zulip_subject'))
         self.db.__disconnect__()
+
+        self.zulip = ZulipClient(self.templates, self.topics)
 
     def start_fetching(self, auto_refresh=True, interval=5):
         """Start fetching updates from Alerta
@@ -70,10 +73,11 @@ class AlertaClient:
 
         while auto_refresh:
             alerts = self.alerta.get_alerts(
-                query=[('from-date', datetime.utcnow().isoformat().split('.')[0] + '.000Z')])
+                # query=[('from-date', datetime.utcnow().isoformat().split('.')[0] + '.000Z')])
+                query=[('from-date', '2020-05-21T09:00:00.000Z')])
             for alert in alerts:
                 if not alert.repeat and alert.status not in ['ack', 'blackout', 'closed']:
-                    print("1")
+                    self.zulip.post_receive(alert)
             time.sleep(interval)
         time.sleep(5)
 
