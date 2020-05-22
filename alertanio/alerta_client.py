@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from alertaclient.api import Client
 
-from alertanio.config.static_config import DATABASE, AlertaConfiguration, topic_map
+from alertanio.config.static_config import AlertaConfiguration, topic_map
 from alertanio.database import DBHelper
 from alertanio.zulip_client import ZulipClient
 
@@ -14,18 +14,20 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 ALERTA_API_KEY = os.environ.get('ALERTA_API_KEY')
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
-TIME_FILE = 'alertanio.time'
+TIME_FILE = '/tmp/alertanio.time'
+
 
 class AlertaClient:
     """Alerta client wrapper"""
     _alerta: Client = None
     _alerta_thread: threading.Thread
 
-    def __init__(self, config=DATABASE['db_config'], environment='prod'):
-        self.config = config.params
+    def __init__(self, db_host, db_port, db_user, db_password, environment='prod'):
         self.alerta_api_key = ALERTA_API_KEY
-        self.db_password = DB_PASSWORD
+        self.db_host = db_host
+        self.db_port = db_port
+        self.db_user = db_user
+        self.db_password = db_password
         self.environment = environment
         self.load_configuration()
 
@@ -45,9 +47,9 @@ class AlertaClient:
     def load_configuration(self):
         """Load/Re-Load Alerta configuration and Topics templates"""
         self.db = DBHelper(
-            host=self.config['host'],
-            port=self.config['port'],
-            user=self.config['user'],
+            host=self.db_host,
+            port=self.db_port,
+            user=self.db_user,
             password=self.db_password
         )
         self.db.__connect__()
