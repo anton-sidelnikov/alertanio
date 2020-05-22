@@ -29,19 +29,13 @@ class ZulipClient():
 
         self.ZULIP_TEMPLATES = template_map
         self.ZULIP_SERVICE_TOPIC_MAP = topic_map
-        """
-            {
-                'service1': {
-                    'to': 'stream_name',
-                    'subject': 'topic_name'
-                }
-            }
-        """
-
-        # self.template = Template(DEFAULT_TMPL)
 
     def post_receive(self, alert):
-        self.template = Template(self.ZULIP_TEMPLATES['DEFAULT_TMPL'])
+        self.template_name = '_'.join(alert.service)
+        if self.template_name in self.ZULIP_TEMPLATES:
+            self.template = Template(self.ZULIP_TEMPLATES[self.template_name])
+        else:
+            self.template = Template(self.ZULIP_TEMPLATES['DEFAULT_TMPL'])
 
         try:
             text = self.template.render(alert.__dict__)
@@ -53,23 +47,15 @@ class ZulipClient():
             message_subject = None
             if (self.ZULIP_SERVICE_TOPIC_MAP
                     and isinstance(self.ZULIP_SERVICE_TOPIC_MAP, dict)):
-                # ZULIP_SERVICE_TOPIC_MAP is a dict in the form
-                # {'service1':
-                #    {'to': 'stream_name', 'subject': 'topic_name'}
-                # }
-                for srv in alert.service:
-                    if srv in self.ZULIP_SERVICE_TOPIC_MAP:
-                        val = self.ZULIP_SERVICE_TOPIC_MAP[srv]
-                        if 'subject' in val:
-                            message_subject = val['subject']
-                        if 'to' in val:
-                            message_to = val['to']
-                        break
+                if self.template_name in self.ZULIP_SERVICE_TOPIC_MAP:
+                    val = self.ZULIP_SERVICE_TOPIC_MAP[self.template_name]
+                    message_subject = val.subject
+                    message_to = val.to
 
             if not message_to:
                 message_to = ZULIP_TO
             if not message_subject:
-                message_subject = '_'.join(alert.service)
+                message_subject = self.template_name
 
             request = {
                 'type': ZULIP_TYPE.strip(),
@@ -79,15 +65,15 @@ class ZulipClient():
             }
             LOGGER.debug('Zulip: message=%s', text)
 
-            # response = self.bot.send_message(request)
+            response = self.bot.send_message(request)
 
-        #     if response['result'] != 'success':
-        #         LOGGER.warn('Error sending alert message to Zulip %s' %
-        #                  response['msg'])
+            if response['result'] != 'success':
+                LOGGER.error('Error sending alert message to Zulip %s' %
+                             response['msg'])
         except Exception as e:
             raise RuntimeError("Zulip: ERROR - %s", e)
 
-        # LOGGER.debug('Zulip: %s', response)
+        LOGGER.debug('Zulip: %s', response)
 
         return
 

@@ -2,7 +2,7 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from alertaclient.api import Client
 
@@ -15,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 ALERTA_API_KEY = os.environ.get('ALERTA_API_KEY')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
-
+TIME_FILE = 'alertanio.time'
 
 class AlertaClient:
     """Alerta client wrapper"""
@@ -65,21 +65,35 @@ class AlertaClient:
 
         self.zulip = ZulipClient(self.templates, self.topics)
 
+    def write_last_run_time(self, time):
+        with open(TIME_FILE, 'w') as file:
+            file.write(time)
+
+    def read_last_run_time(self):
+        try:
+            with open(TIME_FILE, 'r') as file:
+                return file.read()
+        except FileNotFoundError:
+            return None
+
     def start_fetching(self, auto_refresh=True, interval=5):
         """Start fetching updates from Alerta
 
             Date format for query: 2020-05-20T11:00:00.000Z
         """
-
+        last_run = self.read_last_run_time()
         while auto_refresh:
-            alerts = self.alerta.get_alerts(
-                # query=[('from-date', datetime.utcnow().isoformat().split('.')[0] + '.000Z')])
-                query=[('from-date', '2020-05-21T09:00:00.000Z')])
+            if last_run is not None:
+                current_time = last_run
+                last_run = None
+            else:
+                current_time = (datetime.utcnow() - timedelta(seconds=interval)).isoformat().split('.')[0] + '.000Z'
+            alerts = self.alerta.get_alerts(query=[('from-date', current_time)])
             for alert in alerts:
                 if not alert.repeat and alert.status not in ['ack', 'blackout', 'closed']:
                     self.zulip.post_receive(alert)
+            self.write_last_run_time(current_time)
             time.sleep(interval)
-        time.sleep(5)
 
     def start(self):
         """Start alerta"""

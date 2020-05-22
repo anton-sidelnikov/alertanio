@@ -24,7 +24,7 @@
          (
            topic_id SERIAL PRIMARY KEY,
            topic_name VARCHAR(40) NOT NULL,
-           to VARCHAR(255),
-           subject VARCHAR(255),
+           zulip_to VARCHAR(255),
+           zulip_subject VARCHAR(255),
            templ_id SERIAL REFERENCES templates
          )'
