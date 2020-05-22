@@ -1,4 +1,4 @@
-# alertanio
+# Alertanio
 
 Monitors alerta service and report alerts to Zulip
 
@@ -17,18 +17,19 @@ export ZULIP_SUBJECT='';
 export ZULIP_SITE=''
 ```
 
-db_init.yaml - store database structure for client:
+### **db_init.yaml** - store database structure for client:
+
 `configuration` table store configuration elements for alerta client:
-alerta_debug - bool
-alerta_endpoint - str
-alerta_timeout - int
+1. alerta_debug - bool
+2. alerta_endpoint - str
+3. alerta_timeout - int
 
 `templates` table for store templates
-template_name - str
-template_data - str
+1. template_name - str
+2. template_data - str
 
 `topics` table for store topic and it's connection to template
-topic_name - str,
-zulip_to - Zulip stream name,
-zulip_subject - Zulip subject,
-templ_id = templates.template_id
+1. topic_name - str,
+2. zulip_to - Zulip stream name,
+3. zulip_subject - Zulip subject,
+4. templ_id = templates.template_id
