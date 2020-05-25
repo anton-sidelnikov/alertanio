@@ -12,7 +12,8 @@
             config_name VARCHAR(40) NOT NULL,
             alerta_endpoint VARCHAR(255),
             alerta_timeout INT NOT NULL,
-            alerta_debug BOOLEAN NOT NULL
+            alerta_debug BOOLEAN NOT NULL,
+            skip_environments TEXT
          )'
 - name: topics
   params: 'CREATE TABLE topics

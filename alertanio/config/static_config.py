@@ -21,6 +21,7 @@ class AlertaConfiguration:
     alerta_endpoint: str
     alerta_timeout: int
     alerta_debug: bool
+    skip_environment: str
 
 
 @dataclass(frozen=True)
