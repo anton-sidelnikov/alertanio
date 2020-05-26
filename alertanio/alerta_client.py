@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from alertaclient.api import Client
 
-from alertanio.config.static_config import AlertaConfiguration, topic_map
+from alertanio.config.static_config import AlertaConfiguration, topic_map, Blackouts
 from alertanio.database import DBHelper
 from alertanio.zulip_client import ZulipClient
 
@@ -22,13 +22,24 @@ class AlertaClient:
     _alerta: Client = None
     _alerta_thread: threading.Thread
 
-    def __init__(self, db_host, db_port, db_user, db_password, environment='prod'):
+    def __init__(self, db_host, db_port, db_user, db_password, environment='prod', repeat_interval=5):
+        """
+
+        :param db_host: postgres host
+        :param db_port: postgres port
+        :param db_user: postgres user
+        :param db_password: postgres password
+        :param environment: exact environment that stored in db
+        :param repeat_interval: repeat interval between posting messages to Zulip in minutes
+        """
         self.alerta_api_key = ALERTA_API_KEY
         self.db_host = db_host
         self.db_port = db_port
         self.db_user = db_user
         self.db_password = db_password
         self.environment = environment
+        self.repeat_interval = repeat_interval
+
         self.load_configuration()
 
     @property
@@ -63,21 +74,9 @@ class AlertaClient:
             table='templates',
             custom_clause='INNER JOIN topics ON templates.template_id=topics.templ_id'))
         self.topics = topic_map(self.db.get(table='topics', columns='topic_name, zulip_to, zulip_subject'))
+        self.alerta_blackouts = [Blackouts(*item) for item in self.db.get(columns='*', table='blackouts')]
         self.db.__disconnect__()
         self.environments_to_skip = self.alerta_config.skip_environment.split(',')
-        # self.alerta.create_blackout(
-        #     environment='',
-        #     service='',
-        #     resource='',
-        #     event='',
-        #     group='',
-        #     tags='',
-        #     customer='',
-        #     start='',
-        #     duration='',
-        #     text=''
-        # )
-        self.zulip = ZulipClient(self.templates, self.topics)
 
     def write_last_run_time(self, time):
         with open(TIME_FILE, 'w') as file:
@@ -90,16 +89,35 @@ class AlertaClient:
         except FileNotFoundError:
             return None
 
-    def start_fetching(self, auto_refresh=True, interval=5, repeat_interval=5):
+    def create_blackouts(self):
+        if self.alerta_blackouts:
+            current_blackouts = self.alerta.get_blackouts()
+            for item in self.alerta_blackouts:
+                for curr in current_blackouts:
+                    if item.environment == curr.environment and item.service == curr.service and curr.status == 'active':
+                        self.alerta_blackouts.remove(item)
+            for item in self.alerta_blackouts:
+                self.alerta.create_blackout(
+                    environment=item.environment,
+                    service=item.service,
+                    resource=item.resource,
+                    event=item.event_name,
+                    group=item.group_name,
+                    tags=item.tags,
+                    start=item.start_time,
+                    duration=item.duration,
+                    text=item.text)
+
+    def start_fetching(self, auto_refresh=True, interval=5):
         """Start fetching updates from Alerta
 
         Date format for query: 2020-05-20T11:00:00.000Z
 
         :param interval: interval between calling Alerta service in seconds
-        :param repeat_interval: repeat interval between posting messages to Zulip in minutes
         :return:
         """
-
+        self.create_blackouts()
+        self.zulip = ZulipClient(self.templates, self.topics)
         last_run = self.read_last_run_time()
         while auto_refresh:
             if last_run is not None:
@@ -111,7 +129,7 @@ class AlertaClient:
             for alert in alerts:
                 if alert.status not in ['ack', 'blackout', 'closed'] and \
                         alert.environment not in self.environments_to_skip and \
-                        delta_minutes(alert.last_receive_time) >= repeat_interval:
+                        delta_minutes(alert.last_receive_time) >= self.repeat_interval:
                     self.zulip.post_receive(alert)
             self.write_last_run_time(current_time)
             time.sleep(interval)

@@ -24,3 +24,18 @@
            zulip_subject VARCHAR(255),
            templ_id SERIAL REFERENCES templates
          )'
+- name: blackouts
+  params: 'CREATE TABLE blackouts
+         (
+           blackout_id SERIAL PRIMARY KEY,
+           environment VARCHAR(255) NOT NULL,
+           resource VARCHAR(255),
+           service TEXT,
+           event_name VARCHAR(255),
+           group_name VARCHAR(255),
+           tags TEXT,
+           startTime TIMESTAMP,
+           endTime TIMESTAMP,
+           duration INT,
+           reason TEXT
+         )'

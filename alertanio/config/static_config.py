@@ -24,6 +24,27 @@ class AlertaConfiguration:
     skip_environment: str
 
 
+@dataclass()
+class Blackouts:
+    """
+    :param service: list of services separated by comma
+    """
+    blackout_id: int
+    environment: str
+    resource: str
+    service: List
+    event_name: str
+    group_name: str
+    tags: str
+    start_time: str
+    end_time: str
+    duration: int
+    text: str
+
+    def __post_init__(self):
+        self.service = self.service.split(',')
+
+
 @dataclass(frozen=True)
 class TopicMap:
     """Topic map class"""
