@@ -37,7 +37,6 @@ class Blackouts:
     group_name: str
     tags: str
     start_time: str
-    end_time: str
     duration: int
     text: str
 

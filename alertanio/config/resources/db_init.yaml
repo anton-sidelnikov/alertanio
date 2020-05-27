@@ -35,7 +35,6 @@
            group_name VARCHAR(255),
            tags TEXT,
            startTime TIMESTAMP,
-           endTime TIMESTAMP,
            duration INT,
            reason TEXT
          )'

@@ -13,7 +13,6 @@ from alertanio.zulip_client import ZulipClient
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-ALERTA_API_KEY = os.environ.get('ALERTA_API_KEY')
 TIME_FILE = '/tmp/alertanio.time'
 
 
@@ -22,23 +21,18 @@ class AlertaClient:
     _alerta: Client = None
     _alerta_thread: threading.Thread
 
-    def __init__(self, db_host, db_port, db_user, db_password, environment='prod', repeat_interval=5):
+    def __init__(self, args):
         """
 
-        :param db_host: postgres host
-        :param db_port: postgres port
-        :param db_user: postgres user
-        :param db_password: postgres password
         :param environment: exact environment that stored in db
-        :param repeat_interval: repeat interval between posting messages to Zulip in minutes
         """
-        self.alerta_api_key = ALERTA_API_KEY
-        self.db_host = db_host
-        self.db_port = db_port
-        self.db_user = db_user
-        self.db_password = db_password
-        self.environment = environment
-        self.repeat_interval = repeat_interval
+        self.alerta_api_key = args.alerta_api_key
+        self.db_host = args.postgre_host
+        self.db_port = args.postgre_port
+        self.db_user = args.postgre_user
+        self.db_password = args.postgre_password
+        self.repeat_interval = args.repeat_interval
+        self.environment = args.config_name
 
         self.load_configuration()
 
