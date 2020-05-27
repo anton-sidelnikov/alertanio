@@ -1,4 +1,4 @@
-# alertanio
+# Alertanio
 
 Monitors alerta service and report alerts to Zulip
 
@@ -12,7 +12,7 @@ export ZULIP_SUBJECT='';
 export ZULIP_SITE=''
 ```
 Next variable can be set using environment variables:
-```
+```bash
 export DB_HOST='';
 export DB_PORT='';
 export DB_USER='';
@@ -22,32 +22,33 @@ export ALERTA_API_KEY='';
 Or by passing arguments to module:
 `python3 -m alertanio --postgre_host=hostname --postgre_port=port --postgre_user=username --postgre_password=password --repeat_interval=5 --config_name=prod --alerta_api_key=apikey`
 
-`--repeat_interval=5 --config_name=prod - can de set only in module parameters`
+--repeat_interval=5 --config_name=prod - can de set only in module parameters
 
-db_init.yaml - store database structure for client:
+### **db_init.yaml** - store database structure for client:
+
 `configuration` table store configuration elements for alerta client:
-alerta_debug - bool
-alerta_endpoint - str
-alerta_timeout - int
+1. alerta_debug - bool
+2. alerta_endpoint - str
+3. alerta_timeout - int
 
 `templates` table for store templates
-template_name - str
-template_data - str
+1. template_name - str
+2. template_data - str
 
 `topics` table for store topic and it's connection to template
-topic_name - str
-zulip_to - Zulip stream name
-zulip_subject - Zulip subject
-templ_id = templates.template_id
+1. topic_name - str,
+2. zulip_to - Zulip stream name,
+3. zulip_subject - Zulip subject,
+4. templ_id = templates.template_id
 
 `blackouts`
-blackout_id
-environment - environment name
-resource
-service - list of services to blackout, divided by comma
-event_name 
-group_name
-tags
-startTime - when blackout starts (timestamp)
-duration - in seconds
-reason - reason of blackout
+1. blackout_id
+2. environment - environment name
+3. resource
+4. service - list of services to blackout, divided by comma
+5. event_name 
+6. group_name
+7. tags
+8. startTime - when blackout starts (timestamp)
+9. duration - in seconds
+10. reason - reason of blackout
