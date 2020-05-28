@@ -2,6 +2,8 @@ import logging
 
 import psycopg2
 
+from alertanio.config.static_config import AlertaConfiguration, Blackouts, topic_map
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
@@ -66,3 +68,17 @@ class DBHelper:
         """Custom query"""
         self.cur.execute(sql)
         self.con.commit()
+
+    def get_alerta_configuration(self, environment):
+        return AlertaConfiguration(
+            *self.get(columns='*', table='configuration', condition=f"config_name='{environment}'")[0])
+
+    def get_zulip_templates(self):
+        return dict(self.get(columns='topic_name, template_data', table='templates',
+                             custom_clause='INNER JOIN topics ON templates.template_id=topics.templ_id'))
+
+    def get_topics(self):
+        return topic_map(self.get(table='topics', columns='topic_name, zulip_to, zulip_subject'))
+
+    def get_blackouts(self):
+        return [Blackouts(*item) for item in self.get(columns='*', table='blackouts')]

@@ -1,12 +1,10 @@
 import logging
-import os
 import threading
 import time
 from datetime import datetime, timedelta
 
 from alertaclient.api import Client
 
-from alertanio.config.static_config import AlertaConfiguration, topic_map, Blackouts
 from alertanio.database import DBHelper
 from alertanio.zulip_client import ZulipClient
 
@@ -58,17 +56,10 @@ class AlertaClient:
             password=self.db_password
         )
         self.db.__connect__()
-        self.alerta_config = AlertaConfiguration(
-            *self.db.get(
-                columns='*',
-                table='configuration',
-                condition=f"config_name='{self.environment}'")[0])
-        self.templates = dict(self.db.get(
-            columns='topic_name, template_data',
-            table='templates',
-            custom_clause='INNER JOIN topics ON templates.template_id=topics.templ_id'))
-        self.topics = topic_map(self.db.get(table='topics', columns='topic_name, zulip_to, zulip_subject'))
-        self.alerta_blackouts = [Blackouts(*item) for item in self.db.get(columns='*', table='blackouts')]
+        self.alerta_config = self.db.get_alerta_configuration(self.environment)
+        self.templates = self.db.get_zulip_templates()
+        self.topics = self.db.get_topics()
+        self.alerta_blackouts = self.db.get_blackouts()
         self.db.__disconnect__()
         self.environments_to_skip = self.alerta_config.skip_environment.split(',')
 
