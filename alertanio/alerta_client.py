@@ -11,7 +11,7 @@ from alertanio.zulip_client import ZulipClient
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-TIME_FILE = '/tmp/alertanio.time'
+TIME_FILE = 'alertanio.time'
 
 
 class AlertaClient:

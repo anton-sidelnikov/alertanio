@@ -22,6 +22,7 @@ class AlertaConfiguration:
     alerta_timeout: int
     alerta_debug: bool
     skip_environment: str
+    repeat_interval: int
 
 
 @dataclass()

@@ -13,7 +13,8 @@
             alerta_endpoint VARCHAR(255),
             alerta_timeout INT NOT NULL,
             alerta_debug BOOLEAN NOT NULL,
-            skip_environments TEXT
+            skip_environments TEXT,
+            repeat_interval INT NOT NULL DEFAULT 5
          )'
 - name: topics
   params: 'CREATE TABLE topics
